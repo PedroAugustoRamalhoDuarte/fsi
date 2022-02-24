@@ -32,9 +32,9 @@ if __name__ == '__main__':
 
     # Plot mean and std
     variables_mean.plot(kind='bar', title='Média das variáveis')
-    pyplot.show()
+    pyplot.savefig('output/variables_mean.png')
     variables_std.plot(kind='bar', title='Desvio padrão das variáveis')
-    pyplot.show()
+    pyplot.savefig('output/variables_std.png')
 
     # Improves variables name for model evaluate
     x = variables_dataset
@@ -66,10 +66,12 @@ if __name__ == '__main__':
     for name, model in models:
         confusion_matrixs = []
         fold_index = 0
-        pyplot.figure()
 
+        # Initialize models output
         models_output[name]["auc"] = 0
         models_output[name]["features"] = np.zeros(n_features)
+
+        pyplot.figure()
         for train_ix, test_ix in k_fold.split(x, y):
             train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
 
@@ -105,18 +107,19 @@ if __name__ == '__main__':
         pyplot.title(f'{name} Roc and Roc AUC')
         pyplot.xlabel("False Positive Rate")
         pyplot.ylabel("True Positive Rate")
-        pyplot.show()
+        pyplot.savefig(f'output/{name}_roc_auc.png')
 
         # Confusion matrix plot
         confusion_matrixs_total = np.add.reduce(confusion_matrixs)
         disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrixs_total)
         disp.plot()
         pyplot.title(f'{name} Matriz de Confusão')
-        pyplot.show()
+        pyplot.savefig(f'output/{name}_confusion_matrix.png')
 
-    # 5. Best features for the best case (Choose my high aoc)
+    # 5. Best features for the best case (Choose highest aoc)
     best_model = max(models_output, key=lambda k: models_output[k]["auc"])
     print(f'Best model in average {best_model} ({(models_output[best_model]["auc"] / n_features):.3f})')
     print(f'Best fold {best_case["fold_number"]} from {best_case["model_name"]} ({best_case["area"]:.3f})')
+    pyplot.figure()
     pyplot.bar(variables_dataset.columns.values, models_output[best_model]["features"] / n_features)
-    pyplot.show()
+    pyplot.savefig(f'output/variables_importance.png')
