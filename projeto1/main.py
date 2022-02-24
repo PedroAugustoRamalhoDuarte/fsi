@@ -16,21 +16,6 @@ def read_data():
 def clean_data(dataset):
     dataset['famhist'].replace({"Present": 1, "Absent": 0}, inplace=True)
 
-
-def data_fold(dataset, fold_number):
-    FOLD_PERCENT = 0.1
-    rows = dataset.shape[0]
-    test_rows = int(rows * FOLD_PERCENT)
-    test_row_initial_index = test_rows * fold_number
-    test_data = dataset.iloc[test_row_initial_index:test_row_initial_index + test_rows]
-    train_data = dataset.drop(labels=range(test_row_initial_index, test_row_initial_index + test_rows), axis=0)
-    return train_data, test_data
-
-
-def split_variables_labels(dataset):
-    return dataset.drop('chd', axis=1), dataset.loc[:, 'chd']
-
-
 if __name__ == '__main__':
     dataset = read_data()
     clean_data(dataset)
