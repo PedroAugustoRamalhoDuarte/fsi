@@ -1,6 +1,8 @@
 from pandas import read_csv
 from matplotlib import pyplot
 from sklearn import tree
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict, KFold
 
 
 def read_data():
@@ -46,15 +48,23 @@ if __name__ == '__main__':
     # pyplot.show()
 
     # 2. Prediction with CART
-    for i in range(0, 1):
-        train_data, test_data = data_fold(dataset, i)
-        variables, labels = split_variables_labels(train_data)
-        test_data_var, test_data_labels = split_variables_labels(train_data)
-        clf = tree.DecisionTreeClassifier()
-        clf = clf.fit(variables, labels)
+    y = variables_dataset_with_label.loc[:, 'chd']
+    clf = tree.DecisionTreeClassifier()
+    kfold = KFold(n_splits=10, random_state=1, shuffle=True)
+    y_pred = cross_val_predict(clf, variables_dataset, y, cv=kfold)
+    print(y_pred.keys())
+    conf_mat = confusion_matrix(y, y_pred)
+    print(conf_mat)
+    print("ALOHA")
+    # for i in range(0, 1):
+    #     train_data, test_data = data_fold(dataset, i)
+    #     variables, labels = split_variables_labels(train_data)
+    #     test_data_var, test_data_labels = split_variables_labels(train_data)
+    #     clf = tree.DecisionTreeClassifier()
+    #     clf = clf.fit(variables, labels)
 
-        # https://scikit-learn.org/stable/modules/model_evaluation.html
-        print(clf.predict(test_data_var))
-        print(test_data_labels)
-        # tree.plot_tree(clf)
-        # pyplot.show()
+    # https://scikit-learn.org/stable/modules/model_evaluation.html
+    # print(clf.predict(test_data_var))
+    # print(test_data_labels)
+    # tree.plot_tree(clf)
+    # pyplot.show()
