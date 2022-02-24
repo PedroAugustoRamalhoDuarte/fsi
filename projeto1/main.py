@@ -1,5 +1,7 @@
+import numpy as np
 from pandas import read_csv
 from matplotlib import pyplot
+from sklearn import svm, datasets
 from sklearn import tree
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict, KFold
@@ -48,23 +50,41 @@ if __name__ == '__main__':
     # pyplot.show()
 
     # 2. Prediction with CART
-    y = variables_dataset_with_label.loc[:, 'chd']
-    clf = tree.DecisionTreeClassifier()
-    kfold = KFold(n_splits=10, random_state=1, shuffle=True)
-    y_pred = cross_val_predict(clf, variables_dataset, y, cv=kfold)
-    print(y_pred.keys())
-    conf_mat = confusion_matrix(y, y_pred)
-    print(conf_mat)
-    print("ALOHA")
-    # for i in range(0, 1):
-    #     train_data, test_data = data_fold(dataset, i)
-    #     variables, labels = split_variables_labels(train_data)
-    #     test_data_var, test_data_labels = split_variables_labels(train_data)
-    #     clf = tree.DecisionTreeClassifier()
-    #     clf = clf.fit(variables, labels)
+    # y = variables_dataset_with_label.loc[:, 'chd']
+    # x = variables_dataset_with_label
+    # k_fold = StratifiedKFold(n_splits=10, random_state=111, shuffle=True)
+    #
+    # mats = []
+    # for train_index, test_index in k_fold.split(x, y):
+    #     mats.append(confusion_matrix(y_train[test_index], y_pred[test_index]))
+    # predicted_targets = np.array([])
+    # actual_targets = np.array([])
+    #
+    # for train_ix, test_ix in k_fold.split(x):
+    #     print(train_ix)
+    #     print(test_ix)
+    #     train_x, train_y, test_x, test_y = x[train_ix], y[train_ix], x[test_ix], y[test_ix]
+    #
+    #     clf = tree.DecisionTreeClassifier().fit(train_x, train_y)
+    #
+    #     predicted_labels = clf.predict(test_x)
+    #
+    #     predicted_targets = np.append(predicted_targets, predicted_labels)
+    #     actual_targets = np.append(actual_targets, test_y)
+    #
+    #     print(confusion_matrix(test_y, predicted_labels))
 
-    # https://scikit-learn.org/stable/modules/model_evaluation.html
-    # print(clf.predict(test_data_var))
-    # print(test_data_labels)
-    # tree.plot_tree(clf)
-    # pyplot.show()
+    for i in range(0, 10):
+        train_data, test_data = data_fold(dataset, i)
+        variables, labels = split_variables_labels(train_data)
+        test_data_var, test_data_labels = split_variables_labels(train_data)
+        clf = tree.DecisionTreeClassifier()
+        clf = clf.fit(variables, labels)
+
+        predict_labels = clf.predict(test_data_var)
+        print(confusion_matrix(test_data_labels, predict_labels))
+        # https://scikit-learn.org/stable/modules/model_evaluation.html
+        # print()
+        # print(test_data_labels)
+        # tree.plot_tree(clf)
+        # pyplot.show()
