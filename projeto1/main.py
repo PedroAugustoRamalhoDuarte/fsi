@@ -46,14 +46,15 @@ if __name__ == '__main__':
     variables_std = describe.T['std']
 
     # Plot mean and std
-    # variables_mean.plot(kind='bar', title='Média das variáveis')
-    # pyplot.show()
-    # variables_std.plot(kind='bar', title='Desvio padrão das variáveis')
-    # pyplot.show()
+    variables_mean.plot(kind='bar', title='Média das variáveis')
+    pyplot.show()
+    variables_std.plot(kind='bar', title='Desvio padrão das variáveis')
+    pyplot.show()
 
     models = [
         ('CART', DecisionTreeClassifier()),  # 2. Prediction with CART
-        ('RandomForest', RandomForestClassifier())  # 3. Prediction with RandomForest
+        ('RandomForest', RandomForestClassifier(n_estimators=100)),  # 3. Prediction with RandomForest
+        ('RandomForest SQRT', RandomForestClassifier(max_features="sqrt", n_estimators=100))  # 4. RandomForest Sqrt
     ]
 
     x = variables_dataset
@@ -61,6 +62,12 @@ if __name__ == '__main__':
 
     k_fold = KFold(n_splits=10, random_state=1, shuffle=True)
 
+    best_case = {
+        "fold_number": 0,
+        "area": 0,
+        "model_name": "",
+        "features": [],
+    }
     # For each model
     for name, model in models:
         confusion_matrixs = []
@@ -70,7 +77,6 @@ if __name__ == '__main__':
             train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
 
             clf = model.fit(train_x, train_y)
-
             predicted_labels = clf.predict(test_x)
 
             # Roc curve variables
@@ -80,6 +86,15 @@ if __name__ == '__main__':
 
             # Confusion matrix
             confusion_matrixs.append(confusion_matrix(test_y, predicted_labels))
+
+            # Select best case bases on AOC area
+            if roc_auc > best_case["area"]:
+                best_case = {
+                    "fold_nubmer": fold_index,
+                    "model_name": name,
+                    "area": roc_auc,
+                    "features": clf.feature_importances_
+                }
 
             fold_index += 1
 
@@ -97,3 +112,9 @@ if __name__ == '__main__':
         disp.plot()
         pyplot.title(f'{name} Matriz de Confusão')
         pyplot.show()
+
+    # 5. Best features for the best case
+    pyplot.bar([x for x in range(len(best_case["features"]))], best_case["features"])
+    print(variables_dataset.columns)
+    pyplot.ylabel(variables_dataset.columns.values)
+    pyplot.show()
