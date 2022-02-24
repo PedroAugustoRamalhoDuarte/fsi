@@ -16,6 +16,7 @@ def read_data():
 def clean_data(dataset):
     dataset['famhist'].replace({"Present": 1, "Absent": 0}, inplace=True)
 
+
 if __name__ == '__main__':
     dataset = read_data()
     clean_data(dataset)
@@ -99,7 +100,5 @@ if __name__ == '__main__':
         pyplot.show()
 
     # 5. Best features for the best case
-    pyplot.bar([x for x in range(len(best_case["features"]))], best_case["features"])
-    print(variables_dataset.columns)
-    pyplot.ylabel(variables_dataset.columns.values)
+    pyplot.bar(variables_dataset.columns.values, best_case["features"])
     pyplot.show()
