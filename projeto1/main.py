@@ -5,6 +5,7 @@ from sklearn import svm, datasets
 from sklearn import tree
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict, KFold
+from sklearn.metrics import ConfusionMatrixDisplay
 
 
 def read_data():
@@ -50,41 +51,21 @@ if __name__ == '__main__':
     # pyplot.show()
 
     # 2. Prediction with CART
-    # y = variables_dataset_with_label.loc[:, 'chd']
-    # x = variables_dataset_with_label
-    # k_fold = StratifiedKFold(n_splits=10, random_state=111, shuffle=True)
-    #
-    # mats = []
-    # for train_index, test_index in k_fold.split(x, y):
-    #     mats.append(confusion_matrix(y_train[test_index], y_pred[test_index]))
-    # predicted_targets = np.array([])
-    # actual_targets = np.array([])
-    #
-    # for train_ix, test_ix in k_fold.split(x):
-    #     print(train_ix)
-    #     print(test_ix)
-    #     train_x, train_y, test_x, test_y = x[train_ix], y[train_ix], x[test_ix], y[test_ix]
-    #
-    #     clf = tree.DecisionTreeClassifier().fit(train_x, train_y)
-    #
-    #     predicted_labels = clf.predict(test_x)
-    #
-    #     predicted_targets = np.append(predicted_targets, predicted_labels)
-    #     actual_targets = np.append(actual_targets, test_y)
-    #
-    #     print(confusion_matrix(test_y, predicted_labels))
+    x = variables_dataset_with_label
+    y = variables_dataset_with_label.loc[:, 'chd']
+    k_fold = StratifiedKFold(n_splits=10, random_state=1, shuffle=True)
 
-    for i in range(0, 10):
-        train_data, test_data = data_fold(dataset, i)
-        variables, labels = split_variables_labels(train_data)
-        test_data_var, test_data_labels = split_variables_labels(train_data)
-        clf = tree.DecisionTreeClassifier()
-        clf = clf.fit(variables, labels)
+    confusion_matrixs = []
+    for train_ix, test_ix in k_fold.split(x, y):
+        train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
 
-        predict_labels = clf.predict(test_data_var)
-        print(confusion_matrix(test_data_labels, predict_labels))
-        # https://scikit-learn.org/stable/modules/model_evaluation.html
-        # print()
-        # print(test_data_labels)
-        # tree.plot_tree(clf)
-        # pyplot.show()
+        clf = tree.DecisionTreeClassifier().fit(train_x, train_y)
+
+        predicted_labels = clf.predict(test_x)
+
+        confusion_matrixs.append(confusion_matrix(test_y, predicted_labels))
+
+    confusion_matrixs_total = np.add.reduce(confusion_matrixs)
+    disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrixs_total)
+    disp.plot()
+    pyplot.show()
