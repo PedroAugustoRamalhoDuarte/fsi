@@ -1,10 +1,9 @@
 import numpy as np
 from pandas import read_csv
 from matplotlib import pyplot
-from sklearn import svm, datasets
 from sklearn import tree
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict, KFold
+from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.model_selection import KFold
 from sklearn.metrics import ConfusionMatrixDisplay
 
 
@@ -51,11 +50,17 @@ if __name__ == '__main__':
     # pyplot.show()
 
     # 2. Prediction with CART
-    x = variables_dataset_with_label
+    x = variables_dataset
     y = variables_dataset_with_label.loc[:, 'chd']
-    k_fold = StratifiedKFold(n_splits=10, random_state=1, shuffle=True)
+    k_fold = KFold(n_splits=10, shuffle=False)
 
+    fprs = []
+    tprs = []
+    roc_aucs = []
     confusion_matrixs = []
+    fold_index = 0
+
+    pyplot.figure()
     for train_ix, test_ix in k_fold.split(x, y):
         train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
 
@@ -63,8 +68,25 @@ if __name__ == '__main__':
 
         predicted_labels = clf.predict(test_x)
 
+        # Roc curve variables
+        fpr, tpr, _ = roc_curve(test_y, predicted_labels, pos_label=1)
+        fprs.append(fpr)
+        tprs.append(tprs)
+        roc_aucs.append(auc(fpr, tpr))
+
+        pyplot.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (fold_index + 1, roc_aucs[fold_index]))
+        # Confusion matrix
         confusion_matrixs.append(confusion_matrix(test_y, predicted_labels))
 
+        fold_index += 1
+
+    pyplot.legend(loc="lower right")
+    pyplot.xlabel("False Positive Rate")
+    pyplot.ylabel("True Positive Rate")
+    pyplot.show()
+    # Roc curves plot
+
+    # Confusion matrix plot
     confusion_matrixs_total = np.add.reduce(confusion_matrixs)
     disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrixs_total)
     disp.plot()
