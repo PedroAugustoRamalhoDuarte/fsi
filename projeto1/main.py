@@ -2,9 +2,11 @@ import numpy as np
 from pandas import read_csv
 from matplotlib import pyplot
 from sklearn import tree
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import KFold
 from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.tree import DecisionTreeClassifier
 
 
 def read_data():
@@ -49,40 +51,49 @@ if __name__ == '__main__':
     # variables_std.plot(kind='bar', title='Desvio padrão das variáveis')
     # pyplot.show()
 
-    # 2. Prediction with CART
+    models = [
+        ('CART', DecisionTreeClassifier()),  # 2. Prediction with CART
+        ('RandomForest', RandomForestClassifier())  # 3. Prediction with RandomForest
+    ]
+
     x = variables_dataset
     y = variables_dataset_with_label.loc[:, 'chd']
-    k_fold = KFold(n_splits=10, shuffle=False)
 
-    confusion_matrixs = []
-    fold_index = 0
-    pyplot.figure()
-    for train_ix, test_ix in k_fold.split(x, y):
-        train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
+    k_fold = KFold(n_splits=10, random_state=1, shuffle=True)
 
-        clf = tree.DecisionTreeClassifier().fit(train_x, train_y)
+    # For each model
+    for name, model in models:
+        confusion_matrixs = []
+        fold_index = 0
+        pyplot.figure()
+        for train_ix, test_ix in k_fold.split(x, y):
+            train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
 
-        predicted_labels = clf.predict(test_x)
+            clf = model.fit(train_x, train_y)
 
-        # Roc curve variables
-        fpr, tpr, _ = roc_curve(test_y, predicted_labels, pos_label=1)
-        roc_auc = auc(fpr, tpr)
-        pyplot.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (fold_index + 1, roc_auc))
+            predicted_labels = clf.predict(test_x)
 
-        # Confusion matrix
-        confusion_matrixs.append(confusion_matrix(test_y, predicted_labels))
+            # Roc curve variables
+            fpr, tpr, _ = roc_curve(test_y, predicted_labels, pos_label=1)
+            roc_auc = auc(fpr, tpr)
+            pyplot.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (fold_index + 1, roc_auc))
 
-        fold_index += 1
+            # Confusion matrix
+            confusion_matrixs.append(confusion_matrix(test_y, predicted_labels))
 
-    # Roc curves plot
-    pyplot.plot([0, 1], [0, 1], "k--", lw=1, label="Random")
-    pyplot.legend(loc="lower right")
-    pyplot.xlabel("False Positive Rate")
-    pyplot.ylabel("True Positive Rate")
-    pyplot.show()
+            fold_index += 1
 
-    # Confusion matrix plot
-    confusion_matrixs_total = np.add.reduce(confusion_matrixs)
-    disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrixs_total)
-    disp.plot()
-    pyplot.show()
+        # Roc curves plot
+        pyplot.plot([0, 1], [0, 1], "k--", lw=1, label="Random")
+        pyplot.legend(loc="lower right")
+        pyplot.title(f'{name} Roc and Roc AUC')
+        pyplot.xlabel("False Positive Rate")
+        pyplot.ylabel("True Positive Rate")
+        pyplot.show()
+
+        # Confusion matrix plot
+        confusion_matrixs_total = np.add.reduce(confusion_matrixs)
+        disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrixs_total)
+        disp.plot()
+        pyplot.title(f'{name} Matriz de Confusão')
+        pyplot.show()
