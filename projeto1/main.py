@@ -1,7 +1,6 @@
 import numpy as np
 from pandas import read_csv
 from matplotlib import pyplot
-from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 from sklearn.model_selection import KFold
@@ -37,28 +36,40 @@ if __name__ == '__main__':
     variables_std.plot(kind='bar', title='Desvio padrão das variáveis')
     pyplot.show()
 
+    # Improves variables name for model evaluate
+    x = variables_dataset
+    y = variables_dataset_with_label.loc[:, 'chd']
+    n_features = len(variables_dataset.columns.values)
+
+    # Setup models
     models = [
         ('CART', DecisionTreeClassifier()),  # 2. Prediction with CART
         ('RandomForest', RandomForestClassifier(n_estimators=100)),  # 3. Prediction with RandomForest
         ('RandomForest SQRT', RandomForestClassifier(max_features="sqrt", n_estimators=100))  # 4. RandomForest Sqrt
     ]
 
-    x = variables_dataset
-    y = variables_dataset_with_label.loc[:, 'chd']
-
-    k_fold = KFold(n_splits=10, random_state=1, shuffle=True)
-
+    # Initialize variables to calc the best case
     best_case = {
         "fold_number": 0,
         "area": 0,
         "model_name": "",
         "features": [],
     }
+    models_output = {
+        "CART": dict(),
+        "RandomForest": dict(),
+        "RandomForest SQRT": dict()
+    }
+
+    k_fold = KFold(n_splits=10, random_state=1, shuffle=True)
     # For each model
     for name, model in models:
         confusion_matrixs = []
         fold_index = 0
         pyplot.figure()
+
+        models_output[name]["auc"] = 0
+        models_output[name]["features"] = np.zeros(n_features)
         for train_ix, test_ix in k_fold.split(x, y):
             train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
 
@@ -68,15 +79,19 @@ if __name__ == '__main__':
             # Roc curve variables
             fpr, tpr, _ = roc_curve(test_y, predicted_labels, pos_label=1)
             roc_auc = auc(fpr, tpr)
+            models_output[name]["auc"] += roc_auc
             pyplot.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (fold_index + 1, roc_auc))
 
             # Confusion matrix
             confusion_matrixs.append(confusion_matrix(test_y, predicted_labels))
 
-            # Select best case bases on AOC area
+            # Save features performance
+            models_output[name]["features"] = np.add(models_output[name]["features"], clf.feature_importances_)
+
+            # Select best fold case bases on AOC area
             if roc_auc > best_case["area"]:
                 best_case = {
-                    "fold_nubmer": fold_index,
+                    "fold_number": fold_index + 1,
                     "model_name": name,
                     "area": roc_auc,
                     "features": clf.feature_importances_
@@ -99,6 +114,9 @@ if __name__ == '__main__':
         pyplot.title(f'{name} Matriz de Confusão')
         pyplot.show()
 
-    # 5. Best features for the best case
-    pyplot.bar(variables_dataset.columns.values, best_case["features"])
+    # 5. Best features for the best case (Choose my high aoc)
+    best_model = max(models_output, key=lambda k: models_output[k]["auc"])
+    print(f'Best model in average {best_model} ({(models_output[best_model]["auc"] / n_features):.3f})')
+    print(f'Best fold {best_case["fold_number"]} from {best_case["model_name"]} ({best_case["area"]:.3f})')
+    pyplot.bar(variables_dataset.columns.values, models_output[best_model]["features"] / n_features)
     pyplot.show()
