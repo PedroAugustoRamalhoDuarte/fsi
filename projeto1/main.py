@@ -54,12 +54,8 @@ if __name__ == '__main__':
     y = variables_dataset_with_label.loc[:, 'chd']
     k_fold = KFold(n_splits=10, shuffle=False)
 
-    fprs = []
-    tprs = []
-    roc_aucs = []
     confusion_matrixs = []
     fold_index = 0
-
     pyplot.figure()
     for train_ix, test_ix in k_fold.split(x, y):
         train_x, train_y, test_x, test_y = x.iloc[train_ix], y.iloc[train_ix], x.iloc[test_ix], y.iloc[test_ix]
@@ -70,21 +66,20 @@ if __name__ == '__main__':
 
         # Roc curve variables
         fpr, tpr, _ = roc_curve(test_y, predicted_labels, pos_label=1)
-        fprs.append(fpr)
-        tprs.append(tprs)
-        roc_aucs.append(auc(fpr, tpr))
+        roc_auc = auc(fpr, tpr)
+        pyplot.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (fold_index + 1, roc_auc))
 
-        pyplot.plot(fpr, tpr, lw=1, label='ROC fold %d (area = %0.2f)' % (fold_index + 1, roc_aucs[fold_index]))
         # Confusion matrix
         confusion_matrixs.append(confusion_matrix(test_y, predicted_labels))
 
         fold_index += 1
 
+    # Roc curves plot
+    pyplot.plot([0, 1], [0, 1], "k--", lw=1, label="Random")
     pyplot.legend(loc="lower right")
     pyplot.xlabel("False Positive Rate")
     pyplot.ylabel("True Positive Rate")
     pyplot.show()
-    # Roc curves plot
 
     # Confusion matrix plot
     confusion_matrixs_total = np.add.reduce(confusion_matrixs)
