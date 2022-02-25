@@ -14,7 +14,9 @@ Para rodar:
 
 `python3 main.py`
 
-Foi feita também uma solução utilizando jupiter notebook para o export do pdf, para melhorar a visualização;
+Foi feita também uma solução utilizando jupiter notebook para melhorar a visualização/correção e ṕde ser acessado por
+esse link:
+https://github.com/PedroAugustoRamalhoDuarte/fsi/blob/main/projeto1/main.ipynb
 
 ## Explicação dos passos
 
