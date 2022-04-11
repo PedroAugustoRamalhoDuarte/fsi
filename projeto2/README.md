@@ -1,5 +1,9 @@
 # Projeto 2 - FSI
 
+## Aluno
+
+Pedro Augusto Ramalho Duarte - 170163717
+
 ## Links
 
 - Link Google Colab: https://colab.research.google.com/drive/1HQiZmaa7yifX4aJeHNM-ET95Qc9_dHzD?usp=sharing
