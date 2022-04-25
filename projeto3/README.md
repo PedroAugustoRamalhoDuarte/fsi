@@ -5,6 +5,7 @@ Aluno: Pedro Augusto Ramalho Duarte
 Matrícula: 17/0163717
 
 Github: https://github.com/PedroAugustoRamalhoDuarte/fsi/blob/main/projeto3/Projeto3.ipynb
+Colab: https://colab.research.google.com/drive/1wbl0Pmp2-kjn6M-NVZb-3Oz-8_Fb1-Kp?usp=sharing
 ### Referências
 - https://www.analyticsvidhya.com/blog/2021/06/how-to-load-kaggle-datasets-directly-into-google-colab/
 - https://www.immersivelimit.com/tutorials/yolact-with-google-colab
